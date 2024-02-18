@@ -1,0 +1,72 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity =0.8.24;
+
+
+contract RecallHandler{
+    address payable NHTSA;
+   
+    Registration RegistrationContract;
+
+
+enum status{
+    Pending,
+    Accepted,
+    Rejected,
+    Received
+}
+
+
+struct DefectComplaintRequestdetails{
+    address receiver;
+    address requestor;
+    string VIN;
+    string VehicleModelName;
+    string FunctionalModuleName;
+    string VehicleBuildYear;
+   
+    status DefectComplaintRequestdetailsStatus;
+   
+}
+
+
+mapping(bytes32=>DefectComplaintRequestdetails) public GetDefectComplaintRequestID;
+
+
+
+
+constructor(address registration) public {
+        RegistrationContract=Registration(registration);
+       
+        if(!RegistrationContract.CustomerExists(msg.sender))
+            revert("Sender not authorized");
+   
+}
+modifier onlyRequestor{
+    require(RegistrationContract.CustomerExists(msg.sender),
+    "Sender not authorized."
+    );
+    _;
+    }
+modifier onlyReceiver{
+    require(RegistrationContract.isNHTSA(msg.sender),
+    "Sender not authorized."
+    );
+    _;
+    }    
+modifier onlySEnder{
+    require(RegistrationContract.AutomakerExists(msg.sender),
+    "Sender not authorized."
+    );
+    _;
+    }
+modifier onlyReceiver1{
+    require(RegistrationContract.CustomerExists(msg.sender)|| RegistrationContract.DealerExists(msg.sender),
+    "Sender not authorized."
+    );
+    _;
+    }
+
+
+event DefectComplaintPlaced(bytes32 DefectComplaintRequestID, address receiver, address requestor, string VIN, string FunctionalModuleName, string VehicleModelname, string BuildDate);
+event StatusUpdated(bytes32 DefectComplaintRequestID, status newStatus);
+}
